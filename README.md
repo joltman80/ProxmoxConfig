@@ -88,7 +88,7 @@ ssh-copy-id -i ~/.ssh/id_ed25519.pub root@pve01.theoltmanfamily.net
 
 You can then disable Password based SSH access for the root user.
 
-### Optimize Host Using Post-Install Script
+### Optimize Host
 
 > [!NOTE]
 > ALWAYS examine a script before blindly running it.  It could contain malicious code and a few moments reviewing the script will help you learn what it's actually doing.
@@ -99,7 +99,13 @@ There are community developed scripts that will assist you with installing CTs o
 bash -c "$(wget -qLO - https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/misc/post-pve-install.sh)"
 ```
 
-Choose yes for most options, except the TESTING repo and anything else that you don't want.
+Choose yes for most options, except the TESTING repo and anything else that you don't want.  The script will prompt you to reboot the host.
+
+Install the intel-gpu-tools package:
+
+```console
+apt install intel-gpu-tools
+```
 
 ### Software Defined Network Configuration
 
@@ -240,6 +246,27 @@ From the Web GUI, click on the PVE host name, scroll down to the Storage Directo
 
 From the top right hand corner of the WebGUI click on CREATE CT.  Fill out all the fields as needed.  For the initial management template, choose 2 CPUs, 2GB of RAM, 4GB of disk space and choose UNPRIVILEDGED.  Create a new ROOT password and copy in your SSH public key.
 
+### Basic Configuration
+
+You must update the packages in the container first.
+
+```console
+apt update
+apt dist-upgrade
+```
+
+When that is done, reboot the machine.  There is no need to install an NTP client as the container takes its time from the host per this document.  However, you must set the correct timezone:
+
+```console
+timedatectl set-timezone America/Denver
+```
+
+Create the skeleton directories needed for when ```useradd``` is run.
+
+```console
+mkdir /etc/skel/Documents /etc/skel/Downloads
+```
+
 ### Install Docker and Compose
 
 SSH into the container and follow the [Docker guide](https://docs.docker.com/engine/install/debian/) for installing Docker in Debian Bookworm.
@@ -270,3 +297,7 @@ mkdir /docker
 ```
 
 You can now use VS Code to connect to this container and create your compose files.
+
+Once you have your main-compose.yaml and separate compose.yaml files created, along with their associated directories, you can start up your containers!
+
+docker compose -f /docker/main-compose.yaml up -d

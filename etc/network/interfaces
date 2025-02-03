@@ -1,0 +1,53 @@
+auto lo
+iface lo inet loopback
+
+iface eno1 inet manual
+
+iface eno2 inet manual
+
+iface enp1s0f0 inet manual
+
+iface enp1s0f1 inet manual
+
+auto bond0
+iface bond0 inet manual
+      bond-slaves eno1 eno2
+      bond-miimon 100
+      bond-mode 802.3ad
+      bond-xmit-hash-policy layer3+4
+
+auto bond1
+iface bond1 inet manual
+      bond-slaves enp1s0f0 enp1s0f1
+      bond-miimon 100
+      bond-mode 802.3ad
+      bond-xmit-hash-policy layer3+4
+
+auto bond0.20
+iface bond0.20 inet manual
+
+auto vmbr0v20
+iface vmbr0.20 inet static
+        address  10.0.10.40/24
+        gateway  10.0.10.1
+        bridge-ports bond0.20
+        bridge-stp off
+        bridge-fd 0
+
+auto vmbr0
+iface vmbr0 inet manual
+        bridge-ports bond0
+        bridge-stp off
+        bridge-fd 0
+        bridge-vlan-aware no
+
+auto vmbr1
+iface vmbr1 inet manual
+        bridge-ports bond1
+        bridge-stp off
+        bridge-fd 0
+        bridge-vlan-aware no
+
+source /etc/network/interfaces.d/*
+
+# Reload this file by saving it and running ifreload -a
